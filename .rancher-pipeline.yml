@@ -1,9 +1,24 @@
 stages:
-- name: Build--NPM build dist
+- name: Publish--vuejs image
   steps:
-  - runScriptConfig:
-      image: node:14
-      shellScript: cd app; npm install; npm run build; ls
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: .
+      tag: ${CICD_GIT_REPO_NAME}/vue:${CICD_GIT_BRANCH}-${CICD_EXECUTION_SEQUENCE}
+      pushRemote: true
+      registry: 10.20.0.73:5443
+    env:
+      PLUGIN_INSECURE: "true"
+      PLUGIN_MTU: "1000"
+      PLUGIN_BUILD_ARGS: "--progress=tty --network=host"
+      PLUGIN_MIRROR: "https://10.20.0.73:5443"
+      PLUGIN_DEBUG: "true"
+- name: deploy--vuejs deployment and service on kubernetes
+  steps:
+  - applyYamlConfig:
+      path: ./k8s-yaml/vuejs-deployment.yaml
+  - applyYamlConfig:
+      path: ./k8s-yaml/vuejs-service.yaml
 - name: Code Review--run Checkmarx test
   steps:
   - runScriptConfig:
@@ -39,39 +54,27 @@ stages:
     - sourceName: checkmarx
       sourceKey: cm-url
       targetKey: cm_url
-- name: Run webinspect-runner
-  steps:
-    - runScriptConfig:
-        image: iiiorg/webinspect-runner
-        shellScript: cd /usr/src/app; node /usr/src/app/app.js
-      env:
-        inspect_url: http://<Your k8s external host>:30185/
-        project_name: ${CICD_GIT_REPO_NAME}
-        git_branch: ${CICD_GIT_BRANCH}
-        git_commit_id: ${CICD_GIT_COMMIT}
-        verbose: true
-      envFrom:
-        - sourceName: webinspect
-          sourceKey: wi-base-url
-          targetKey: wi_base_url
-        - sourceName: nexus
-          sourceKey: username
-          targetKey: api_username
-        - sourceName: nexus
-          sourceKey: password
-          targetKey: api_password
-        - sourceName: nexus
-          sourceKey: api-origin
-          targetKey: api_origin
-- name: Publish--vuejs image
-  steps:
-  - publishImageConfig:
-      dockerfilePath: ./Dockerfile
-      buildContext: .
-      tag: ${CICD_GIT_REPO_NAME}:${CICD_GIT_BRANCH}-${CICD_EXECUTION_SEQUENCE}
-- name: deploy--vuejs deployment and service on kubernetes
-  steps:
-  - applyYamlConfig:
-      path: ./k8s-yaml/vuejs-deployment.yaml
-  - applyYamlConfig:
-      path: ./k8s-yaml/vuejs-service.yaml
+#- name: Run webinspect-runner
+#  steps:
+#    - runScriptConfig:
+#        image: iiiorg/webinspect-runner
+#        shellScript: cd /usr/src/app; node /usr/src/app/app.js
+#      env:
+#        inspect_url: http://<Your k8s external host>:30185/
+#        project_name: ${CICD_GIT_REPO_NAME}
+#        git_branch: ${CICD_GIT_BRANCH}
+#        git_commit_id: ${CICD_GIT_COMMIT}
+#        verbose: true
+#      envFrom:
+#        - sourceName: webinspect
+#          sourceKey: wi-base-url
+#          targetKey: wi_base_url
+#        - sourceName: nexus
+#          sourceKey: username
+#          targetKey: api_username
+#        - sourceName: nexus
+#          sourceKey: password
+#          targetKey: api_password
+#        - sourceName: nexus
+#          sourceKey: api-origin
+#          targetKey: api_origin
