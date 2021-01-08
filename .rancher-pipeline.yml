@@ -4,31 +4,82 @@ stages:
   - publishImageConfig:
       dockerfilePath: ./Dockerfile
       buildContext: .
-      tag: ${CICD_GIT_REPO_NAME}/vue:${CICD_GIT_BRANCH}-${CICD_EXECUTION_SEQUENCE}
+      tag: ${CICD_GIT_REPO_NAME}/${CICD_GIT_REPO_NAME}:${CICD_GIT_BRANCH}-${CICD_GIT_COMMIT}
       pushRemote: true
       registry: 10.20.0.73:5443
     env:
-      PLUGIN_INSECURE: "true"
-      PLUGIN_MTU: "1000"
-      PLUGIN_BUILD_ARGS: "--progress=tty --network=host"
-      PLUGIN_MIRROR: "https://10.20.0.73:5443"
+      PLUGIN_BUILD_ARGS: --progress=tty --network=host
       PLUGIN_DEBUG: "true"
+      PLUGIN_INSECURE: "true"
+      PLUGIN_MIRROR: https://10.20.0.73:5443
+      PLUGIN_MTU: "1000"
+    when:
+      branch:
+        include:
+        - master
+- name: Publish--vuejs image on-build
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile.onbuild
+      buildContext: .
+      tag: ${CICD_GIT_REPO_NAME}/${CICD_GIT_REPO_NAME}:${CICD_GIT_BRANCH}
+      pushRemote: true
+      registry: 10.20.0.73:5443
+    env:
+      PLUGIN_BUILD_ARGS: --progress=tty --network=host
+      PLUGIN_DEBUG: "true"
+      PLUGIN_INSECURE: "true"
+      PLUGIN_MIRROR: https://10.20.0.73:5443
+      PLUGIN_MTU: "1000"
+    when:
+      branch:
+        include:
+        - on-build
+- name: Publish--vuejs image develop
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile.develop
+      buildContext: .
+      tag: ${CICD_GIT_REPO_NAME}/${CICD_GIT_REPO_NAME}:${CICD_GIT_BRANCH}-${CICD_GIT_COMMIT}
+      pushRemote: true
+      registry: 10.20.0.73:5443
+    env:
+      PLUGIN_BUILD_ARGS: --progress=tty --network=host
+      PLUGIN_DEBUG: "true"
+      PLUGIN_INSECURE: "true"
+      PLUGIN_MIRROR: https://10.20.0.73:5443
+      PLUGIN_MTU: "1000"
+    when:
+      branch:
+        include:
+        - develop
 - name: deploy--vuejs deployment and service on kubernetes
   steps:
   - applyYamlConfig:
       path: ./k8s-yaml/vuejs-deployment.yaml
+    when:
+      branch:
+        include:
+        - master
+        - develop
   - applyYamlConfig:
       path: ./k8s-yaml/vuejs-service.yaml
+    when:
+      branch:
+        include:
+        - master
+        - develop
 - name: Code Review--run Checkmarx test
   steps:
   - runScriptConfig:
       image: 10.20.0.73:5443/dockerhub/iiiorg/checkmarx-runner:latest
-      shellScript: ln -s "$(pwd)" /usr/src/app/repo; cd /usr/src/app; ls; echo ${api_orign};node app.js;
+      shellScript: ln -s "$(pwd)" /usr/src/app/repo; cd /usr/src/app; ls; echo ${api_orign};node
+        app.js;
     env:
-      git_url: ${CICD_GIT_URL}
       git_branch: ${CICD_GIT_BRANCH}
       git_commit_id: ${CICD_GIT_COMMIT}
-      verbose: true
+      git_url: ${CICD_GIT_URL}
+      verbose: "true"
     envFrom:
     - sourceName: nexus
       sourceKey: api-origin
@@ -54,27 +105,8 @@ stages:
     - sourceName: checkmarx
       sourceKey: cm-url
       targetKey: cm_url
-#- name: Run webinspect-runner
-#  steps:
-#    - runScriptConfig:
-#        image: iiiorg/webinspect-runner
-#        shellScript: cd /usr/src/app; node /usr/src/app/app.js
-#      env:
-#        inspect_url: http://<Your k8s external host>:30185/
-#        project_name: ${CICD_GIT_REPO_NAME}
-#        git_branch: ${CICD_GIT_BRANCH}
-#        git_commit_id: ${CICD_GIT_COMMIT}
-#        verbose: true
-#      envFrom:
-#        - sourceName: webinspect
-#          sourceKey: wi-base-url
-#          targetKey: wi_base_url
-#        - sourceName: nexus
-#          sourceKey: username
-#          targetKey: api_username
-#        - sourceName: nexus
-#          sourceKey: password
-#          targetKey: api_password
-#        - sourceName: nexus
-#          sourceKey: api-origin
-#          targetKey: api_origin
+    when:
+      branch:
+        include:
+        - master
+notification: {}

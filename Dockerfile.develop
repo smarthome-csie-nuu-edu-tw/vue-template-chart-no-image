@@ -1,0 +1,8 @@
+FROM vuejs-template2/vuejs-template2:on-build AS builder
+# 取代原本的資料夾資料
+COPY app /home/node/app
+# 進行編譯
+RUN npm run build
+# 部屬至httpd
+FROM dockerhub/library/httpd:2.4
+COPY --from=builder /home/node/dist/ /usr/local/apache2/htdocs/
