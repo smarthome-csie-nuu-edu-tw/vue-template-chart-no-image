@@ -2,7 +2,7 @@ stages:
 - name: deploy apps
   steps:
   - applyAppConfig:
-      catalogTemplate: cattle-global-data:bitnami-node
+      catalogTemplate: cattle-global-data:bitnami-old-node
       version: 12.0.4
       answers:
         getAppFromExternalRepository: "true"
@@ -13,7 +13,7 @@ stages:
       name: ${CICD_GIT_REPO_NAME}-node
       targetNamespace: ${CICD_GIT_REPO_NAME}
   - applyAppConfig:
-      catalogTemplate: cattle-global-data:bitnami-node
+      catalogTemplate: cattle-global-data:bitnami-old-node
       version: 12.0.4
       answers:
         ingress.enabled: "true"
