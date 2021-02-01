@@ -21,6 +21,7 @@ stages:
         getAppFromExternalRepository: "true"
         repository: https://github.com/smarthome-csie-nuu-edu-tw/vue-template-chart-no-image
         revision: main
+        mongodb.enabled: "false"
         service.type: NodePort
       name: ${CICD_GIT_REPO_NAME}-node
       targetNamespace: ${CICD_GIT_REPO_NAME}
@@ -34,6 +35,7 @@ stages:
         getAppFromExternalRepository: "true"
         repository: https://github.com/smarthome-csie-nuu-edu-tw/vue-template-chart-no-image
         revision: main
+        mongodb.enabled: "false"
         service.type: NodePort
       name: ${CICD_GIT_REPO_NAME}-xip
       targetNamespace: ${CICD_GIT_REPO_NAME}   
