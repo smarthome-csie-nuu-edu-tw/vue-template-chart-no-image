@@ -1,17 +1,4 @@
 stages:
-- name: Publish--vuejs image
-  steps:
-  - publishImageConfig:
-      dockerfilePath: ./Dockerfile
-      buildContext: .
-      tag: ${CICD_GIT_REPO_NAME}/${CICD_GIT_REPO_NAME}:${CICD_GIT_BRANCH}-${CICD_GIT_COMMIT}
-      pushRemote: true
-      registry: reg.406.csie.nuu.edu.tw
-    env:
-      PLUGIN_BUILD_ARGS: --progress=tty --network=host
-      PLUGIN_DEBUG: "true"
-      PLUGIN_INSECURE: "true"
-      PLUGIN_MTU: "1000"
 - name: deploy apps
   steps:
   - applyAppConfig:
